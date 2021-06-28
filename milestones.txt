@@ -1,0 +1,21 @@
+15.06.2021: Project milestone 1
+ - read / understand papers ref[1] and [2]
+ - run basic code on Coco subset of ref[2]
+
+22.06.2021: Project progress discussion
+
+29.06.2021: Project milestone 2
+ - dataloader noise dataset
+ - check code of ref[1]
+ - implement Progressive Label Correction (PLC)
+ - implement evaluation for label correction in training dataset
+
+06.07.2021: Project progress discussion
+
+13.07.2021: Project milestone 3
+ - evaluate the method with different noise % -> measure label purity
+ - show quantitative and qualitative (check on bad predictions where the method fails) results
+
+20.07.2021: Project progress discussion
+27.07.2021: Submission Final Project (Code + Poster/Presentation)
+03.08.2021: Project presentations
