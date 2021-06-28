@@ -34,6 +34,7 @@ import ubteacher.engine.trainer
 # Unbiased Teacher Trainer
 
 from plc.data.build import build_detection_semisup_train_loader_two_crops_subset
+from plc.data.dataset_mapper import DatasetMapperTwoCropSeparatePLC
 
 class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
     def __init__(self, cfg):
@@ -93,7 +94,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
 
     @classmethod
     def build_train_loader(cls, cfg):
-        mapper = DatasetMapperTwoCropSeparate(cfg, True)
+        mapper = DatasetMapperTwoCropSeparatePLC(cfg, True)
         return build_detection_semisup_train_loader_two_crops_subset(cfg, mapper) # TODO: use this to load coco subset with noisy labels
 
     @classmethod
@@ -203,6 +204,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         assert self.model.training, "[UBTeacherTrainer] model was changed to eval mode!"
         start = time.perf_counter()
         data = next(self._trainer._data_loader_iter)
+
         # data_q and data_k from different augmentations (q:strong, k:weak)
         # label_strong, label_weak, unlabed_strong, unlabled_weak
         label_data_q, label_data_k, unlabel_data_q, unlabel_data_k = data
@@ -214,8 +216,8 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
             # input both strong and weak supervised data into model
             label_data_q.extend(label_data_k)
             # bug here
-            print(label_data_q)
-            exit()
+            #print(label_data_q)
+            #exit()
             record_dict, _, _, _ = self.model(label_data_q, branch="supervised")
 
             # weight losses

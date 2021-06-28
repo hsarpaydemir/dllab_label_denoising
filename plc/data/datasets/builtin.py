@@ -1,6 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import os
 import contextlib
+
+import detectron2.data.datasets.coco
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from fvcore.common.timer import Timer
 from fvcore.common.file_io import PathManager
@@ -34,8 +36,12 @@ def register_own_dataset(name, metadata, json_file, image_root):
     assert isinstance(image_root, (str, os.PathLike)), image_root
 
     # 1. register a function which returns dicts
+
+    # DatasetCatalog.register(
+    #     name, lambda: load_owndataset(json_file, image_root, name)
+    # )
     DatasetCatalog.register(
-        name, lambda: load_owndataset(json_file, image_root, name)
+        name, lambda: detectron2.data.datasets.coco.load_coco_json(json_file, image_root, name)
     )
 
     # 2. Optionally, add metadata about this dataset,
@@ -67,7 +73,8 @@ def load_owndataset(
     logger.info("Loaded {} images in COCO format from {}".format(len(imgs), json_file))
 
     dataset_dicts = []
-
+    #TODO: add annotations
+    # detectron2.data.datasets.coco.py load_coco_json(json_file, image_root, dataset_name=None, extra_annotation_keys=None)
     for img_dict in imgs:
         record = {}
         record["file_name"] = os.path.join(image_root, img_dict["file_name"])
@@ -89,8 +96,9 @@ name_train = "coco_2017_train_subset"
 name_val = "coco_2017_val_subset"
 json_file_train = "./datasets/coco/subset_annotations/instances_train2017_subset.json"
 json_file_val = "./datasets/coco/subset_annotations/instances_val2017_subset.json"
-image_root = "./datasets/coco/train2017/"
-register_own_dataset(name_train, metadata, json_file_train, image_root)
-register_own_dataset(name_val, metadata, json_file_val, image_root)
+image_root_train = "./datasets/coco/train2017/"
+image_root_val = "./datasets/coco/val2017/"
+register_own_dataset(name_train, metadata, json_file_train, image_root_train)
+register_own_dataset(name_val, metadata, json_file_val, image_root_val)
 #_root = os.getenv("DETECTRON2_DATASETS", "datasets")
 #register_coco_unlabel_plc(_root)

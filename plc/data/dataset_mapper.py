@@ -11,7 +11,7 @@ from detectron2.data.dataset_mapper import DatasetMapper
 from ubteacher.data.detection_utils import build_strong_augmentation
 
 
-class DatasetMapperTwoCropSeparate(DatasetMapper):
+class DatasetMapperTwoCropSeparatePLC(DatasetMapper):
     """
     This customized mapper produces two augmented images from a single image
     instance. This mapper makes sure that the two augmented images have the same
@@ -78,11 +78,12 @@ class DatasetMapperTwoCropSeparate(DatasetMapper):
         Returns:
             dict: a format that builtin models in detectron2 accept
         """
-
         dataset_dict = copy.deepcopy(dataset_dict)  # it will be modified by code below
         image = utils.read_image(dataset_dict["file_name"], format=self.img_format)
         utils.check_image_size(dataset_dict, image)
 
+        # print("mapper got called")
+        # print("input : ", dataset_dict)
         if "sem_seg_file_name" in dataset_dict:
             sem_seg_gt = utils.read_image(
                 dataset_dict.pop("sem_seg_file_name"), "L"

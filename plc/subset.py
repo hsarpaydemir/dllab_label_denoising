@@ -25,7 +25,7 @@ def makeSubset(train = True):
     if train:
         ratio =0.1
     else:
-        ratio = 0.5
+        ratio = 0.05
     # go though json_file["images"] and select the ones i want
     keeplist = set()
     images = []

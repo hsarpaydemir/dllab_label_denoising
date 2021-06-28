@@ -3,6 +3,7 @@ import numpy as np
 import operator
 import json
 import torch.utils.data
+from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.utils.comm import get_world_size
 from detectron2.data.common import (
     DatasetFromList,
@@ -52,8 +53,7 @@ def divide_label_unlabel_subset(
     num_label = int(sup_p / 100. * num_all)
     labeled_idx = np.random.choice(range(num_all), size=num_label, replace=False)
 
-    print(len(labeled_idx))
-    print(num_label)
+
     #exit()
     assert labeled_idx.shape[0] == num_label, "Number of READ_DATA is mismatched."
 
@@ -74,6 +74,8 @@ def divide_label_unlabel_subset(
 def build_detection_semisup_train_loader_two_crops_subset(cfg, mapper=None):
     # TODO: loading is here
     #print(cfg.DATASETS.TRAIN)
+    #print(DatasetCatalog.get("coco_2017_train"))
+    #exit()
     #exit()
     if cfg.DATASETS.CROSS_DATASET:  # cross-dataset (e.g., coco-additional)
         label_dicts = get_detection_dataset_dicts(
@@ -107,6 +109,7 @@ def build_detection_semisup_train_loader_two_crops_subset(cfg, mapper=None):
             if cfg.MODEL.LOAD_PROPOSALS
             else None,
         )
+        #print("after loading :",len(dataset_dicts))
 
         # Divide into labeled and unlabeled sets according to supervision percentage
         label_dicts, unlabel_dicts = divide_label_unlabel_subset(
@@ -118,11 +121,13 @@ def build_detection_semisup_train_loader_two_crops_subset(cfg, mapper=None):
 
 
     # label_dicts are lists. every element is one dictionary with dict_keys(['file_name', 'height', 'width', 'image_id', 'annotations'])
-    print("Debug :")
-    print("unlabeled : " ,unlabel_dicts[0].keys())
-    print("labeled : " ,label_dicts[0].keys())
-    print(label_dicts[0]["file_name"])
-    #exit()
+    # needs to have format  dict_keys(['file_name', 'height', 'width', 'image_id', 'annotations'])
+    # currently has dict_keys(['file_name', 'height', 'width', 'image_id'])
+    # print("Debug :")
+    # print("unlabeled : " ,unlabel_dicts[0].keys())
+    # print("labeled : " ,label_dicts[0].keys())
+    # print(label_dicts[0]["file_name"])
+    # exit()
 
     # TODO: drop images and add noise here
 
@@ -131,17 +136,23 @@ def build_detection_semisup_train_loader_two_crops_subset(cfg, mapper=None):
 
     label_dicts = add_noise(label_dicts)
 
-
+    # print("mapping...")
+    # print(label_dicts[0].keys())
     label_dataset = DatasetFromList(label_dicts, copy=False)
     # exclude the labeled set from unlabeled dataset
     unlabel_dataset = DatasetFromList(unlabel_dicts, copy=False)
     # include the labeled set in unlabel dataset
     # unlabel_dataset = DatasetFromList(dataset_dicts, copy=False)
-
+    # print(label_dataset[0].keys())
     if mapper is None:
         mapper = DatasetMapper(cfg, True)
+    # # TODO: check this for mapping
+    # print(label_dataset)
+    # exit()
     label_dataset = MapDataset(label_dataset, mapper)
     unlabel_dataset = MapDataset(unlabel_dataset, mapper)
+    # print(label_dataset[0][0].keys())
+    # exit()
 
     sampler_name = cfg.DATALOADER.SAMPLER_TRAIN
     logger = logging.getLogger(__name__)

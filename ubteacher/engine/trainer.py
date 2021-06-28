@@ -389,6 +389,7 @@ class UBTeacherTrainer(DefaultTrainer):
         assert self.model.training, "[UBTeacherTrainer] model was changed to eval mode!"
         start = time.perf_counter()
         data = next(self._trainer._data_loader_iter)
+        # gt fields present here
         # data_q and data_k from different augmentations (q:strong, k:weak)
         # label_strong, label_weak, unlabed_strong, unlabled_weak
         label_data_q, label_data_k, unlabel_data_q, unlabel_data_k = data

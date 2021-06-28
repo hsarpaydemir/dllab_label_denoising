@@ -187,22 +187,30 @@ def build_detection_semisup_train_loader_two_crops(cfg, mapper=None):
             cfg.DATALOADER.RANDOM_DATA_SEED,
             cfg.DATALOADER.RANDOM_DATA_SEED_PATH,
         )
-
-
+    # labeld_dicts = list
+    #print(label_dicts[0])
+    # get  dict_keys(['file_name', 'height', 'width', 'image_id', 'annotations']) here
+    # print("Debug :")
+    # print("unlabeled : " ,unlabel_dicts[0].keys())
+    # print("labeled : " ,label_dicts[0].keys())
+    # print(label_dicts[0]["file_name"])
+    # exit()
     # label_dicts are lists. every element is one dictionary with dict_keys(['file_name', 'height', 'width', 'image_id', 'annotations'])
     # print("Debug :")
-    # print(label_dicts[0].keys())
-    # exit()
+    print(label_dicts[0].keys())
+
     label_dataset = DatasetFromList(label_dicts, copy=False)
     # exclude the labeled set from unlabeled dataset
     unlabel_dataset = DatasetFromList(unlabel_dicts, copy=False)
     # include the labeled set in unlabel dataset
     # unlabel_dataset = DatasetFromList(dataset_dicts, copy=False)
-
+    print(label_dataset[0].keys())
     if mapper is None:
         mapper = DatasetMapper(cfg, True)
     label_dataset = MapDataset(label_dataset, mapper)
     unlabel_dataset = MapDataset(unlabel_dataset, mapper)
+    # print(label_dataset[0][0].keys())
+    # exit()
 
     sampler_name = cfg.DATALOADER.SAMPLER_TRAIN
     logger = logging.getLogger(__name__)
