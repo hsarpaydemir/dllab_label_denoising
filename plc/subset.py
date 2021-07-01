@@ -1,14 +1,19 @@
 import os
 import json
 import random
+import pdb
 
 def makeSubset(train = True):
     if train:
         path = "../datasets/coco/annotations/instances_train2017.json"
+        path = os.path.join(os.path.dirname(__file__), path)
         outpath = "../datasets/coco/subset_annotations/instances_train2017_subset.json"
+        outpath = os.path.join(os.path.dirname(__file__), outpath)
     else:
         path = "../datasets/coco/annotations/instances_val2017.json"
+        path = os.path.join(os.path.dirname(__file__), path)
         outpath = "../datasets/coco/subset_annotations/instances_val2017_subset.json"
+        outpath = os.path.join(os.path.dirname(__file__), outpath)
 
     file = open(path)
     json_file = json.load(file)
