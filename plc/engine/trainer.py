@@ -249,6 +249,16 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                     _,
                 ) = self.model_teacher(unlabel_data_k, branch="unsup_data_weak")
 
+                # get class prediction from real boxes
+                (
+                    _,
+                    _,
+                    _,
+                    prediction_from_gt,
+                ) = self.model_teacher(label_data_k, branch="predict_classes")
+                class_prediction = prediction_from_gt[0]
+
+
             #  Pseudo-labeling
             cur_threshold = self.cfg.SEMISUPNET.BBOX_THRESHOLD
 

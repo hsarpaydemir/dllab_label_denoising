@@ -4,4 +4,4 @@ python train_net_plc.py --num-gpus 1 --config configs/coco_supervision_plc/faste
 
 
 ; smaller batch
-python train_net_plc.py --num-gpus 1 --config configs/coco_supervision_plc/faster_rcnn_R_50_FPN_sup1_run1.yaml SOLVER.IMG_PER_BATCH_LABEL 1 SOLVER.IMG_PER_BATCH_UNLABEL 1
+python train_net_plc.py --num-gpus 1 --config configs/coco_supervision_plc/test.yaml SOLVER.IMG_PER_BATCH_LABEL 1 SOLVER.IMG_PER_BATCH_UNLABEL 1

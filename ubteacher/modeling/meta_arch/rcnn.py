@@ -1,7 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
 from detectron2.modeling.meta_arch.rcnn import GeneralizedRCNN
-
+from detectron2.structures.instances import Instances
+import torch
 
 @META_ARCH_REGISTRY.register()
 class TwoStagePseudoLabGeneralizedRCNN(GeneralizedRCNN):
@@ -53,6 +54,30 @@ class TwoStagePseudoLabGeneralizedRCNN(GeneralizedRCNN):
             )
 
             return {}, proposals_rpn, proposals_roih, ROI_predictions
+
+        elif branch == "predict_classes":
+            # predict the class based on the given boxes
+
+
+            # # TODO: fake a region proposal: labels: objectness_logits, proposal_boxes
+
+
+            proposals_ground_truth = []
+            for i in gt_instances:
+                proposals_ground_truth.append(Instances(i._image_size))
+                proposals_ground_truth[-1].set("proposal_boxes", i.gt_boxes)
+                proposals_ground_truth[-1].set("objectness_logits", torch.zeros(len(i)).to(self.device))
+
+            # changes the names of gt_isntances fields
+            proposals_roih, ROI_predictions = self.roi_heads(
+                images,
+                features,
+                proposals_ground_truth,
+                targets=None,
+                compute_loss=False,
+                branch=branch,
+            )
+            return {}, gt_instances, proposals_roih, ROI_predictions
 
         elif branch == "val_loss":
 
