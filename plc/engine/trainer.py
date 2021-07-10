@@ -33,6 +33,7 @@ from ubteacher.solver.build import build_lr_scheduler
 import ubteacher.engine.trainer
 # Unbiased Teacher Trainer
 
+import plc.data.build
 from plc.data.build import build_detection_semisup_train_loader_two_crops_subset
 from plc.data.dataset_mapper import DatasetMapperTwoCropSeparatePLC
 import pdb
@@ -83,6 +84,10 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         self.cfg = cfg
 
         self.register_hooks(self.build_hooks())
+
+        # TODO: building plc things
+        plc.data.build.LabeledDatasetStorage.storeFirstLabels()
+        plc.data.build.LabeledDatasetStorage.build_data_loader(cfg=cfg)
 
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
@@ -280,20 +285,20 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                     _,
                 ) = self.model_teacher(unlabel_data_k, branch="unsup_data_weak")
 
-                # get class prediction from real boxes
-                (
-                    _,
-                    _,
-                    _,
-                    prediction_from_gt,
-                ) = self.model_teacher(label_data_k, branch="predict_classes")
-                class_prediction = prediction_from_gt[0]
-            #lrt_correction() inputs
-            y_tilde = label_data_k[0]['instances'].gt_classes
-            #f_x = torch.argmax(class_prediction, dim = 1)
-            f_x = class_prediction
-            y_corrected, current_delta = self.lrt_correction(np.array(y_tilde).copy(), f_x)
-            cprint("y_tilde(noisy labels) -> {} \nf_x(model prediction) -> {} \nCorrected labels -> {} \n".format(y_tilde, torch.argmax(class_prediction, dim = 1), y_corrected), "green")
+            #     # get class prediction from real boxes
+            #     (
+            #         _,
+            #         _,
+            #         _,
+            #         prediction_from_gt,
+            #     ) = self.model_teacher(label_data_k, branch="predict_classes")
+            #     class_prediction = prediction_from_gt[0]
+            # #lrt_correction() inputs
+            # y_tilde = label_data_k[0]['instances'].gt_classes
+            # #f_x = torch.argmax(class_prediction, dim = 1)
+            # f_x = class_prediction
+            # y_corrected, current_delta = self.lrt_correction(np.array(y_tilde).copy(), f_x)
+            # cprint("y_tilde(noisy labels) -> {} \nf_x(model prediction) -> {} \nCorrected labels -> {} \n".format(y_tilde, torch.argmax(class_prediction, dim = 1), y_corrected), "green")
 
 
             #  Pseudo-labeling
@@ -517,3 +522,54 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
             # run writers in the end, so that evaluation metrics are written
             ret.append(hooks.PeriodicWriter(self.build_writers(), period=20))
         return ret
+
+    def plc(self):
+        iterator = plc.data.build.LabeledDatasetStorage.getDatasetIter()
+        print("start correction for {} images ".format(len(plc.data.build.LabeledDatasetStorage.data)))
+        counter = 0
+        tstart = time.time()
+        batch = []
+        class_prediction = []
+        gt = []
+        for i in iterator:
+            # get class prediction from real boxes
+            gt.append(i['instances'].gt_classes)
+            batch.append(i)
+            if len(batch) < 20:
+                continue
+            with torch.no_grad():
+                (
+                    _,
+                    _,
+                    _,
+                    prediction_from_gt,
+                ) = self.model_teacher(batch, branch="predict_classes")
+                class_prediction.append(prediction_from_gt[0])
+            batch = []
+            break
+        # TODO: what format do the prediction have ?
+        tend = time.time()
+        print("time spend for correction :{}".format(tend-tstart))
+
+        # concatenate ground truth
+        gt_tensor = torch.cat(gt)
+
+        class_prediction = torch.cat(class_prediction)
+
+
+        # lrt_correction() inputs
+        #y_tilde = label_data_k[0]['instances'].gt_classes
+        y_tilde = gt_tensor
+
+        # f_x = torch.argmax(class_prediction, dim = 1)
+        f_x = class_prediction
+        y_corrected, current_delta = self.lrt_correction(np.array(y_tilde).copy(), f_x)
+        cprint("y_tilde(noisy labels) -> {} \nf_x(model prediction) -> {} \nCorrected labels -> {} \n".format(y_tilde,
+                                                                                                          torch.argmax(
+                                                                                                              class_prediction,
+                                                                                                              dim=1),
+                                                                                                          y_corrected),
+           "green")
+
+        # store the new labels
+        plc.data.build.LabeledDatasetStorage.updateLabels(y_corrected)

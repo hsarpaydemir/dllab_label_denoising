@@ -26,6 +26,53 @@ from ubteacher.data.common import (
 )
 from ubteacher.data.build import *
 
+class LabeledDatasetStorage:
+    data = []
+    labels = dict()
+    dataloader = None
+
+    @classmethod
+    def storeFirstLabels(LabeledDatasetStorage):
+        for image in LabeledDatasetStorage.data: # gives images -> get boxes -> get labels
+            # store basic labels in labels
+                name = image["file_name"]
+                boxlabels = []
+                for box in image["annotations"]:
+                    boxlabels.append(box["category_id"])
+                LabeledDatasetStorage.labels[name] = boxlabels
+
+    @classmethod
+    def updateLabels(LabeledDatasetStorage, new_labels):
+        counter = 0
+        for i in LabeledDatasetStorage.data:
+            temp_labels = []
+            for j in LabeledDatasetStorage.labels[i['file_name']]:
+                temp_labels.append(new_labels[counter])
+                counter = counter + 1
+            LabeledDatasetStorage.labels[i['file_name']] = temp_labels
+        print("update successful")
+
+    @classmethod
+    def build_data_loader(LabeledDataStorage, cfg):
+        label_dataset = DatasetFromList(LabeledDataStorage.data)
+        mapper = DatasetMapper(is_train = True, augmentations=[], image_format=cfg.INPUT.FORMAT)
+        label_dataset = MapDataset(label_dataset, mapper)
+
+        #dm = DatasetMapper(,is_train = False)
+        LabeledDataStorage.dataloader = torch.utils.data.DataLoader(
+            label_dataset,
+            batch_sampler=None,
+            collate_fn=operator.itemgetter(
+                0
+            ),
+            worker_init_fn=worker_init_reset_seed,
+        )  # yield individual mapped dict
+        #print(dataset)
+
+    @classmethod
+    def getDatasetIter(LabeledDatasetStorage):
+        return iter(LabeledDatasetStorage.dataloader)
+
 
 def subset(set):
     #return set[:int(len(set)]
@@ -118,6 +165,9 @@ def build_detection_semisup_train_loader_two_crops_subset(cfg, mapper=None):
             cfg.DATALOADER.RANDOM_DATA_SEED,
             cfg.DATALOADER.RANDOM_DATA_SEED_PATH,
         )
+
+        # ugly way to get dicts and add noise
+        LabeledDatasetStorage.data = label_dicts.copy()
 
 
     # label_dicts are lists. every element is one dictionary with dict_keys(['file_name', 'height', 'width', 'image_id', 'annotations'])
