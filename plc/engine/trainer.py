@@ -35,6 +35,8 @@ import ubteacher.engine.trainer
 
 from plc.data.build import build_detection_semisup_train_loader_two_crops_subset
 from plc.data.dataset_mapper import DatasetMapperTwoCropSeparatePLC
+import pdb
+from termcolor import cprint
 
 class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
     def __init__(self, cfg):
@@ -199,6 +201,35 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
     # =================== Training Flow ===================
     # =====================================================
 
+    def lrt_correction(self, y_tilde, f_x, current_delta=0.3, delta_increment=0.1):
+        """
+        Label correction using likelihood ratio test. 
+        In effect, it gradually decreases the threshold according to Algorithm 1.
+        
+        current_delta: The initial threshold $\theta$
+        delta_increment: The step size, corresponding to the $\beta$ in Algorithm 1.
+        """
+        corrected_count = 0
+        y_noise = torch.tensor(y_tilde).clone()
+        n = len(y_noise)
+        f_m = f_x.max(1)[0]
+        y_mle = f_x.argmax(1)
+        LR = []
+        for i in range(len(y_noise)):
+            LR.append(float(f_x[i][int(y_noise[i])]/f_m[i]))
+
+        for i in range(int(len(y_noise))):
+            if LR[i] < current_delta:
+                y_noise[i] = y_mle[i]
+                corrected_count += 1
+
+        if corrected_count < 0.001*n:
+            current_delta += delta_increment
+            current_delta = min(current_delta, 0.9)
+            cprint("Update Critical Value -> {}".format(current_delta), "red")
+
+        return y_noise, current_delta
+
     def run_step_full_semisup(self):
         self._trainer.iter = self.iter
         assert self.model.training, "[UBTeacherTrainer] model was changed to eval mode!"
@@ -257,6 +288,12 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                     prediction_from_gt,
                 ) = self.model_teacher(label_data_k, branch="predict_classes")
                 class_prediction = prediction_from_gt[0]
+            #lrt_correction() inputs
+            y_tilde = label_data_k[0]['instances'].gt_classes
+            #f_x = torch.argmax(class_prediction, dim = 1)
+            f_x = class_prediction
+            y_corrected, current_delta = self.lrt_correction(np.array(y_tilde).copy(), f_x)
+            cprint("y_tilde(noisy labels) -> {} \nf_x(model prediction) -> {} \nCorrected labels -> {} \n".format(y_tilde, torch.argmax(class_prediction, dim = 1), y_corrected), "green")
 
 
             #  Pseudo-labeling
