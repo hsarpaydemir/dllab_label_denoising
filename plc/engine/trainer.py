@@ -531,8 +531,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
             # get class prediction from real boxes
             gt.append(i['instances'].gt_classes)
             batch.append(i)
-            if len(batch) < 20:
-                continue
             with torch.no_grad():
                 (
                     _,
@@ -542,7 +540,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                 ) = self.model_teacher(batch, branch="predict_classes")
                 class_prediction.append(prediction_from_gt[0])
             batch = []
-            break
+
         # TODO: what format do the prediction have ?
         tend = time.time()
         print("time spend for correction :{}".format(tend-tstart))
