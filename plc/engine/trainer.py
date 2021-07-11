@@ -89,6 +89,19 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         plc.data.build.LabeledDatasetStorage.storeFirstLabels()
         plc.data.build.LabeledDatasetStorage.build_data_loader(cfg=cfg)
 
+
+        # # try wheter all labels are in the training data
+        # for i in range(1000):
+        #     data,_,_,_ = next(self._trainer._data_loader_iter)
+        #     #print(data)
+        #     #exit()
+        #     # compare data to gt
+        #     print(len(plc.data.build.LabeledDatasetStorage.labels[data[0]['file_name']]))
+        #     print(data[0]['instances'].gt_classes.size()[0])
+        #
+        #
+        # exit()
+
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
         if output_folder is None:
@@ -241,9 +254,23 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         start = time.perf_counter()
         data = next(self._trainer._data_loader_iter)
 
+
+
         # data_q and data_k from different augmentations (q:strong, k:weak)
         # label_strong, label_weak, unlabed_strong, unlabled_weak
         label_data_q, label_data_k, unlabel_data_q, unlabel_data_k = data
+
+        #################### update gt from corrected labels ####################
+
+        #print(label_data_q)
+        #print(label_data_k)
+        # plc.data.build.LabeledDatasetStorage
+        for i in label_data_q:
+            i['instances'].gt_classes = torch.tensor(plc.data.build.LabeledDatasetStorage.labels[i['file_name']])
+        for i in label_data_k:
+            i['instances'].gt_classes = torch.tensor(plc.data.build.LabeledDatasetStorage.labels[i['file_name']])
+        ########################################################################
+
         data_time = time.perf_counter() - start
 
         # burn-in stage (supervised training with labeled data)
