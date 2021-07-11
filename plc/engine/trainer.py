@@ -85,22 +85,9 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
 
         self.register_hooks(self.build_hooks())
 
-        # TODO: building plc things
+        # building plc things
         plc.data.build.LabeledDatasetStorage.storeFirstLabels()
         plc.data.build.LabeledDatasetStorage.build_data_loader(cfg=cfg)
-
-
-        # # try wheter all labels are in the training data
-        # for i in range(1000):
-        #     data,_,_,_ = next(self._trainer._data_loader_iter)
-        #     #print(data)
-        #     #exit()
-        #     # compare data to gt
-        #     print(len(plc.data.build.LabeledDatasetStorage.labels[data[0]['file_name']]))
-        #     print(data[0]['instances'].gt_classes.size()[0])
-        #
-        #
-        # exit()
 
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
@@ -262,8 +249,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
 
         #################### update gt from corrected labels ####################
 
-        #print(label_data_q)
-        #print(label_data_k)
         # plc.data.build.LabeledDatasetStorage
         for i in label_data_q:
             i['instances'].gt_classes = torch.tensor(plc.data.build.LabeledDatasetStorage.labels[i['file_name']])
@@ -279,8 +264,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
             # input both strong and weak supervised data into model
             label_data_q.extend(label_data_k)
             # bug here
-            #print(label_data_q)
-            #exit()
             record_dict, _, _, _ = self.model(label_data_q, branch="supervised")
 
             # weight losses
@@ -299,6 +282,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                 self.iter - self.cfg.SEMISUPNET.BURN_UP_STEP
             ) % self.cfg.SEMISUPNET.TEACHER_UPDATE_ITER == 0:
                 self._update_teacher_model(keep_rate=self.cfg.SEMISUPNET.EMA_KEEP_RATE)
+                self.plc()
 
             record_dict = {}
             #  generate the pseudo-label using teacher model
@@ -311,21 +295,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                     proposals_roih_unsup_k,
                     _,
                 ) = self.model_teacher(unlabel_data_k, branch="unsup_data_weak")
-
-            #     # get class prediction from real boxes
-            #     (
-            #         _,
-            #         _,
-            #         _,
-            #         prediction_from_gt,
-            #     ) = self.model_teacher(label_data_k, branch="predict_classes")
-            #     class_prediction = prediction_from_gt[0]
-            # #lrt_correction() inputs
-            # y_tilde = label_data_k[0]['instances'].gt_classes
-            # #f_x = torch.argmax(class_prediction, dim = 1)
-            # f_x = class_prediction
-            # y_corrected, current_delta = self.lrt_correction(np.array(y_tilde).copy(), f_x)
-            # cprint("y_tilde(noisy labels) -> {} \nf_x(model prediction) -> {} \nCorrected labels -> {} \n".format(y_tilde, torch.argmax(class_prediction, dim = 1), y_corrected), "green")
 
 
             #  Pseudo-labeling
