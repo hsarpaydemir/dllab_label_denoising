@@ -42,15 +42,21 @@ class LabeledDatasetStorage:
                 LabeledDatasetStorage.labels[name] = boxlabels
 
     @classmethod
-    def updateLabels(LabeledDatasetStorage, new_labels):
+    def updateLabels(LabeledDatasetStorage, new_labels, label_map):
         counter = 0
-        for i in LabeledDatasetStorage.data:
+        for i, nr_labels in label_map:
             temp_labels = []
-            for j in LabeledDatasetStorage.labels[i['file_name']]:
+            for n in range(nr_labels):
                 temp_labels.append(new_labels[counter])
                 counter = counter + 1
-            LabeledDatasetStorage.labels[i['file_name']] = temp_labels
-        print("update successful")
+            LabeledDatasetStorage.labels[i] = temp_labels
+
+        # for i in LabeledDatasetStorage.data:
+        #     temp_labels = []
+        #     for j in LabeledDatasetStorage.labels[i['file_name']]:
+        #         temp_labels.append(new_labels[counter])
+        #         counter = counter + 1
+        #     LabeledDatasetStorage.labels[i['file_name']] = temp_labels
 
     @classmethod
     def build_data_loader(LabeledDataStorage, cfg):

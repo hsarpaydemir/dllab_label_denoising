@@ -89,6 +89,14 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         plc.data.build.LabeledDatasetStorage.storeFirstLabels()
         plc.data.build.LabeledDatasetStorage.build_data_loader(cfg=cfg)
 
+        # counter = 0
+        # for i in plc.data.build.LabeledDatasetStorage.labels:
+        #     counter += len(plc.data.build.LabeledDatasetStorage.labels[i])
+        # print(counter)
+        # exit()
+        plc()
+
+
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
         if output_folder is None:
@@ -527,9 +535,12 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         batch = []
         class_prediction = []
         gt = []
+        label_map = []
+
         for i in iterator:
             # get class prediction from real boxes
             gt.append(i['instances'].gt_classes)
+            label_map.append((i['file_name'],len(i['instances'].gt_classes)))
             batch.append(i)
             with torch.no_grad():
                 (
@@ -541,7 +552,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                 class_prediction.append(prediction_from_gt[0])
             batch = []
 
-        # TODO: what format do the prediction have ?
         tend = time.time()
         print("time spend for correction :{}".format(tend-tstart))
 
@@ -566,4 +576,4 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
            "green")
 
         # store the new labels
-        plc.data.build.LabeledDatasetStorage.updateLabels(y_corrected)
+        plc.data.build.LabeledDatasetStorage.updateLabels(y_corrected, label_map)
