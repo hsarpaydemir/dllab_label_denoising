@@ -89,12 +89,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         plc.data.build.LabeledDatasetStorage.storeFirstLabels()
         plc.data.build.LabeledDatasetStorage.build_data_loader(cfg=cfg)
 
-        # counter = 0
-        # for i in plc.data.build.LabeledDatasetStorage.labels:
-        #     counter += len(plc.data.build.LabeledDatasetStorage.labels[i])
-        # print(counter)
-        # exit()
-        plc()
+
 
 
     @classmethod
@@ -530,7 +525,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
     def plc(self):
         iterator = plc.data.build.LabeledDatasetStorage.getDatasetIter()
         print("start correction for {} images ".format(len(plc.data.build.LabeledDatasetStorage.data)))
-        counter = 0
         tstart = time.time()
         batch = []
         class_prediction = []

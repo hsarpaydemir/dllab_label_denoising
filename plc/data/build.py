@@ -38,8 +38,10 @@ class LabeledDatasetStorage:
                 name = image["file_name"]
                 boxlabels = []
                 for box in image["annotations"]:
-                    boxlabels.append(box["category_id"])
+                    if not box["iscrowd"] == 1:
+                        boxlabels.append(box["category_id"])
                 LabeledDatasetStorage.labels[name] = boxlabels
+        print("processed labels")
 
     @classmethod
     def updateLabels(LabeledDatasetStorage, new_labels, label_map):
