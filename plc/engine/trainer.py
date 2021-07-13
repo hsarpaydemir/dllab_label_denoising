@@ -47,6 +47,8 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         Use the custom checkpointer, which loads other backbone models
         with matching heuristics.
         """
+        self.current_delta = 0.3
+
         cfg = DefaultTrainer.auto_scale_workers(cfg, comm.get_world_size())
         data_loader = self.build_train_loader(cfg)
 
@@ -561,7 +563,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
 
         # f_x = torch.argmax(class_prediction, dim = 1)
         f_x = class_prediction
-        y_corrected, current_delta = self.lrt_correction(np.array(y_tilde).copy(), f_x)
+        y_corrected, self.current_delta = self.lrt_correction(np.array(y_tilde).copy(), f_x, current_delta = self.current_delta)
         cprint("y_tilde(noisy labels) -> {} \nf_x(model prediction) -> {} \nCorrected labels -> {} \n".format(y_tilde,
                                                                                                           torch.argmax(
                                                                                                               class_prediction,
