@@ -3,7 +3,7 @@ import json
 import random
 import pdb
 
-def makeSubset(train = True):
+def makeSubset(train = True, noise= False):
     if train:
         path = "../datasets/coco/annotations/instances_train2017.json"
         path = os.path.join(os.path.dirname(__file__), path)
@@ -36,7 +36,7 @@ def makeSubset(train = True):
     images = []
     random.seed(0)
     for i in range(len(json_file["images"])):
-        if random.random()>(1-ratio):
+        if random.random()>(1-ratio) or noise:
             keeplist.add(json_file["images"][i]["id"])
             images.append(json_file["images"][i])
     # print(keeplist)
@@ -60,6 +60,35 @@ def makeSubset(train = True):
         json.dump(json_file,dump_file)
 
 
+def makeNoisySet(train=True):
+    if train:
+        path = "../datasets/coco/annotations/instances_train2017.json"
+        path = os.path.join(os.path.dirname(__file__), path)
+        outpath = "../datasets/coco/noisy_annotations/instances_train2017_10%.json"
+        outpath = os.path.join(os.path.dirname(__file__), outpath)
+    else:
+        path = "../datasets/coco/annotations/instances_val2017.json"
+        path = os.path.join(os.path.dirname(__file__), path)
+        outpath = "../datasets/coco/noisy_subset/instances_val2017.json"
+        outpath = os.path.join(os.path.dirname(__file__), outpath)
+
+    print("opening file")
+    file = open(path)
+    json_file = json.load(file)
+    print(json_file.keys())
+    threshold = 0.90
+
+    random.seed(173489755)
+    for i in json_file['annotations']:
+        if random.random()>=threshold:
+            i['category_id'] = random.randint(1,90)
+
+
+    outfile = open(outpath, "w")
+    json.dump(json_file, outfile)
+
+
 if __name__=="__main__":
-    makeSubset(train=True)
-    makeSubset(train=False)
+    #makeSubset(train=True)
+    #makeSubset(train=False)
+    makeNoisySet()
