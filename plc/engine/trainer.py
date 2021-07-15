@@ -537,7 +537,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
             # get class prediction from real boxes
             gt.append(i['instances'].gt_classes)
             label_map.append((i['file_name'],len(i['instances'].gt_classes)))
-            batch.append(i)
+            batch = [i]
             with torch.no_grad():
                 (
                     _,
@@ -546,7 +546,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                     prediction_from_gt,
                 ) = self.model_teacher(batch, branch="predict_classes")
                 class_prediction.append(prediction_from_gt[0])
-            batch = []
 
         tend = time.time()
         print("time spend for correction :{}".format(tend-tstart))
@@ -573,3 +572,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
 
         # store the new labels
         plc.data.build.LabeledDatasetStorage.updateLabels(y_corrected, label_map)
+        del label_map
+        del gt
+        del class_prediction
