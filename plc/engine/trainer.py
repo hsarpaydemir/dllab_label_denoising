@@ -96,6 +96,8 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
             json.dump(plc.data.build.LabeledDatasetStorage.labels, f)
             f.write("\n")
 
+        ### plc config
+        self.plc_interval = 0
 
 
 
