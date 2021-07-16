@@ -7,6 +7,7 @@ from torch.nn.parallel import DistributedDataParallel
 from fvcore.nn.precise_bn import get_bn_modules
 import numpy as np
 from collections import OrderedDict
+import json
 
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
@@ -90,6 +91,10 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         # building plc things
         plc.data.build.LabeledDatasetStorage.storeFirstLabels()
         plc.data.build.LabeledDatasetStorage.build_data_loader(cfg=cfg)
+        ### output labels #####
+        with open("./label_output/plc_update.json", "a") as f:
+            json.dump(plc.data.build.LabeledDatasetStorage.labels, f)
+            f.write("\n")
 
 
 
@@ -556,6 +561,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
         class_prediction = torch.cat(class_prediction)
 
 
+
         # lrt_correction() inputs
         #y_tilde = label_data_k[0]['instances'].gt_classes
         y_tilde = gt_tensor
@@ -569,6 +575,11 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                                                                                                               dim=1),
                                                                                                           y_corrected),
            "green")
+
+        ### output labels #####
+        with open("./label_output/plc_update.json", "a") as f:
+            json.dump(y_corrected, f)
+            f.write("\n")
 
         # store the new labels
         plc.data.build.LabeledDatasetStorage.updateLabels(y_corrected, label_map)
