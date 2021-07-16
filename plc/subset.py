@@ -62,14 +62,14 @@ def makeSubset(train = True, noise= False):
 
 def makeNoisySet(train=True):
     if train:
-        path = "../datasets/coco/annotations/instances_train2017.json"
+        path = "../datasets/coco/subset_annotations/instances_train2017_subset.json"
         path = os.path.join(os.path.dirname(__file__), path)
         outpath = "../datasets/coco/noisy_annotations/instances_train2017_10%.json"
         outpath = os.path.join(os.path.dirname(__file__), outpath)
     else:
-        path = "../datasets/coco/annotations/instances_val2017.json"
+        path = "../datasets/coco/subset_annotations/instances_val2017_subset.json"
         path = os.path.join(os.path.dirname(__file__), path)
-        outpath = "../datasets/coco/noisy_subset/instances_val2017.json"
+        outpath = "../datasets/coco/noisy_annotations/instances_val2017.json"
         outpath = os.path.join(os.path.dirname(__file__), outpath)
 
     print("opening file")
@@ -78,11 +78,29 @@ def makeNoisySet(train=True):
     print(json_file.keys())
     threshold = 0.90
 
+    tmp_arr = []
+    for i in json_file['categories']:
+        tmp_arr.append(i['id'])
+
     random.seed(173489755)
     for i in json_file['annotations']:
         if random.random()>=threshold:
-            i['category_id'] = random.randint(1,90)
+            while True:
+                rand_tmp = random.randint(1, 90)
+                if rand_tmp in tmp_arr:
+                    i['category_id'] = rand_tmp
+                    break
 
+    '''
+    for i in json_file['annotations']:
+        if random.random()>=threshold:
+            while True:
+                rand_tmp = random.randint(1, 90)
+                if rand_tmp not in random_picked or (len(random_picked) >= 90):
+                    i['category_id'] = rand_tmp
+                    random_picked.append(rand_tmp)
+                    break
+    '''
 
     outfile = open(outpath, "w")
     json.dump(json_file, outfile)
@@ -90,5 +108,5 @@ def makeNoisySet(train=True):
 
 if __name__=="__main__":
     #makeSubset(train=True)
-    #makeSubset(train=False)
+    #zmakeSubset(train=False)
     makeNoisySet()
