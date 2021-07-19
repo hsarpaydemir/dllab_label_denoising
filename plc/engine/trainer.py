@@ -295,6 +295,10 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
             ) % self.cfg.SEMISUPNET.TEACHER_UPDATE_ITER == 0:
                 self._update_teacher_model(keep_rate=self.cfg.SEMISUPNET.EMA_KEEP_RATE)
                 self.plc()
+            
+            #One plc correction step takes 41 minutes, total should take 41 * 180000 / 20000 = 4.1 hours
+            if (self.iter - self.cfg.SEMISUPNET.BURN_UP_STEP) % 20000 == 0:
+                self.plc()
 
             record_dict = {}
             #  generate the pseudo-label using teacher model
@@ -580,7 +584,8 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
 
         ### output labels #####
         with open("./label_output/plc_update.json", "a") as f:
-            json.dump(y_corrected, f)
+            pdb.set_trace()
+            json.dump(y_corrected.tolist(), f)
             f.write("\n")
 
         # store the new labels
