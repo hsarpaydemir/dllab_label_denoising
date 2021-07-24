@@ -5,7 +5,7 @@ import pdb
 import copy
 from tqdm import tqdm
 
-DOWNSCALE_FACTOR = 8
+DOWNSCALE_FACTOR = 2
 
 directory = "../datasets/coco/train2017/"
 directory = os.path.join(os.path.dirname(__file__), directory)
@@ -17,10 +17,10 @@ for filename in tqdm(os.listdir(directory)):
     img_full = directory + filename
     im = Image.open(img_full, mode = 'r')
     width, height = im.size
-    im = im.resize([width // DOWNSCALE_FACTOR, height // DOWNSCALE_FACTOR], Image.NEAREST)
+    im = im.resize([width // DOWNSCALE_FACTOR, height // DOWNSCALE_FACTOR], Image.BICUBIC)
     im.save(out_directory + filename)
 
-
+'''
 directory = "../datasets/coco/val2017/"
 directory = os.path.join(os.path.dirname(__file__), directory)
 
@@ -31,10 +31,11 @@ for filename in tqdm(os.listdir(directory)):
     img_full = directory + filename
     im = Image.open(img_full, mode = 'r')
     width, height = im.size
-    im = im.resize([width // DOWNSCALE_FACTOR, height // DOWNSCALE_FACTOR], Image.NEAREST)
+    im = im.resize([width // DOWNSCALE_FACTOR, height // DOWNSCALE_FACTOR], Image.BICUBIC)
     im.save(out_directory + filename)
+'''
 
-path = "datasets/coco/annotations/instances_train2017.json"
+path = "../datasets/coco/annotations/instances_train2017.json"
 file = open(path)
 json_file = json.load(file)
 final_json = json_file
@@ -53,10 +54,11 @@ for img in tqdm(json_file['images']):
     img['height'] = img['height'] // DOWNSCALE_FACTOR
     #print('BeforeDims: ', img_dims, '\t AfterDims', (img['width'], img['height']), '\n')
 
-outpath = 'datasets/annotations_new/instances_train2017.json'
+outpath = '../datasets/coco/annotations_new/instances_train2017.json'
 with open(outpath, "w") as dump_file:
         json.dump(json_file,dump_file)
 
+'''
 path = "datasets/coco/annotations/instances_val2017.json"
 file = open(path)
 json_file = json.load(file)
@@ -79,3 +81,4 @@ for img in tqdm(json_file['images']):
 outpath = 'datasets/annotations_new/instances_val2017.json'
 with open(outpath, "w") as dump_file:
         json.dump(json_file,dump_file)
+'''

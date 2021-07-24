@@ -141,6 +141,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                     self.before_step()
                     self.run_step_full_semisup()
                     self.after_step()
+                self.plc() #Since the iteration count is 10000, we run this one more time after train loop for a total of 5 runs
             except Exception:
                 logger.exception("Exception during training:")
                 raise
@@ -294,10 +295,9 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                 self.iter - self.cfg.SEMISUPNET.BURN_UP_STEP
             ) % self.cfg.SEMISUPNET.TEACHER_UPDATE_ITER == 0:
                 self._update_teacher_model(keep_rate=self.cfg.SEMISUPNET.EMA_KEEP_RATE)
-                self.plc()
             
             #One plc correction step takes 41 minutes, total should take 41 * 180000 / 20000 = 4.1 hours
-            if (self.iter - self.cfg.SEMISUPNET.BURN_UP_STEP) % 20000 == 0:
+            if (self.iter - self.cfg.SEMISUPNET.BURN_UP_STEP) % 2000 == 0:
                 self.plc()
 
             record_dict = {}
@@ -584,7 +584,6 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
 
         ### output labels #####
         with open("./label_output/plc_update.json", "a") as f:
-            pdb.set_trace()
             json.dump(y_corrected.tolist(), f)
             f.write("\n")
 
