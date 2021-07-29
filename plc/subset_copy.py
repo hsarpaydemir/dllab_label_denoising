@@ -5,7 +5,7 @@ import pdb
 import numpy as np
 from tqdm import tqdm
 
-NUMBER_OF_CLASSES = 30
+NUMBER_OF_CLASSES = 10
 
 def makeSubset(train = True, noise= False):
     if train:
@@ -30,12 +30,34 @@ def makeSubset(train = True, noise= False):
     if train:
         ratio =0.05
     else:
-        ratio = 0.05
+        ratio = 0.4
     # go though json_file["images"] and select the ones i want
     keeplist = set()
     images = []
     random.seed(0)
 
+    keeplist = set()
+    images = []
+    random.seed(0)
+    for i in tqdm(range(len(json_file["images"]))):
+        if random.random()>(1-ratio) or noise:
+            keeplist.add(json_file["images"][i]["id"])
+            #images.append(json_file["images"][i])
+
+    new_annotations = []
+    new_image_ids = []
+    new_images = []
+    for annotation in tqdm(json_file['annotations']):
+        if (annotation['image_id'] in keeplist) and (annotation['category_id'] in top_classes):
+            new_annotations.append(annotation)
+            if annotation['image_id'] not in new_image_ids:
+                new_image_ids.append(annotation['image_id'])
+
+    for image in tqdm(json_file['images']):
+        if image['id'] in new_image_ids:
+            new_images.append(image)
+    
+    '''
     img_bbxs = {}
     for annotation in json_file['annotations']:
         if annotation['image_id'] in img_bbxs:
@@ -51,7 +73,7 @@ def makeSubset(train = True, noise= False):
                 images.append(json_file["images"][i])
         except:
             continue
-    pdb.set_trace()
+    '''
     # print(keeplist)
     # print(images)
 
@@ -62,17 +84,17 @@ def makeSubset(train = True, noise= False):
     #print(keeplist)
     #exit()
 
+    '''
     for i in range(len(json_file["annotations"])):
         if json_file["annotations"][i]['image_id'] in keeplist:
             annotations.append(json_file["annotations"][i])
+    '''
 
-    print("keeping ", len(annotations) , " annotations for ", len(keeplist), " images")
+    print("keeping ", len(new_annotations) , " annotations for ", len(new_images), " images")
     with open(outpath, "w") as dump_file:
-        json_file["images"] = images
-        json_file["annotations"] = annotations
+        json_file["images"] = new_images
+        json_file["annotations"] = new_annotations
         json.dump(json_file,dump_file)
-    
-    
 
 
 def makeNoisySet(train=True):
@@ -97,14 +119,11 @@ def makeNoisySet(train=True):
     for i in json_file['categories']:
         tmp_arr.append(i['id'])
 
+    top_classes = find_top_classes()
     random.seed(173489755)
     for i in json_file['annotations']:
         if random.random()>=threshold:
-            while True:
-                rand_tmp = random.randint(1, 90)
-                if rand_tmp in tmp_arr:
-                    i['category_id'] = rand_tmp
-                    break
+            i['category_id'] = random.choice(top_classes)
 
     '''
     for i in json_file['annotations']:
@@ -149,7 +168,7 @@ def find_top_classes(train = True, noise= False):
 
 if __name__=="__main__":
     #find_top_classes(train=True)
-    makeSubset(train=True)
-    #makeSubset(train=False)
+    #makeSubset(train=True)
+    makeSubset(train=False)
     #makeNoisySet()
     

@@ -297,7 +297,7 @@ class UBTeacherTrainerPLC(ubteacher.engine.trainer.UBTeacherTrainer):
                 self._update_teacher_model(keep_rate=self.cfg.SEMISUPNET.EMA_KEEP_RATE)
             
             #One plc correction step takes 41 minutes, total should take 41 * 180000 / 20000 = 4.1 hours
-            if (self.iter - self.cfg.SEMISUPNET.BURN_UP_STEP) % 2000 == 0:
+            if (self.iter - self.cfg.SEMISUPNET.BURN_UP_STEP) % 1000 == 0:
                 self.plc()
 
             record_dict = {}

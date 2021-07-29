@@ -26,7 +26,8 @@ def add20percent():
     seedlist=[]
     accepted = set()
 
-    while len(accepted)<2927:
+    #was 2927 before
+    while len(accepted)<2352:
         r = random.randint(0,len(image_set)-1)
         if image_set[r] not in accepted:
             accepted.add(image_set[r])

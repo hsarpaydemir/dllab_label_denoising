@@ -25,6 +25,7 @@ from ubteacher.data.common import (
     AspectRatioGroupedSemiSupDatasetTwoCrop,
 )
 from ubteacher.data.build import *
+import pdb
 
 class LabeledDatasetStorage:
     data = []
@@ -104,7 +105,7 @@ def divide_label_unlabel_subset(
     # assert labeled_idx.shape[0] == num_label, "Number of READ_DATA is mismatched."
 
     num_all = len(dataset_dicts)
-    sup_p = 50
+    sup_p = 20
     num_label = int(sup_p / 100. * num_all)
     labeled_idx = np.random.choice(range(num_all), size=num_label, replace=False)
 

@@ -18,6 +18,7 @@ def makeSubset(train = True, noise= False):
     file = open(path)
     json_file = json.load(file)
     print(json_file.keys())
+    pdb.set_trace()
     #print(json_file["images"])
     s = set()
     # exit()
@@ -28,7 +29,7 @@ def makeSubset(train = True, noise= False):
     #     s.add(json_file["annotations"][i]["image_id"])
 
     if train:
-        ratio =0.5
+        ratio =0.1
     else:
         ratio = 0.05
     # go though json_file["images"] and select the ones i want
@@ -107,6 +108,6 @@ def makeNoisySet(train=True):
 
 
 if __name__=="__main__":
-    #makeSubset(train=True)
+    makeSubset(train=True)
     #makeSubset(train=False)
-    makeNoisySet()
+    #makeNoisySet()

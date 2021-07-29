@@ -30,7 +30,6 @@ from ubteacher.modeling.meta_arch.ts_ensemble import EnsembleTSModel
 from ubteacher.checkpoint.detection_checkpoint import DetectionTSCheckpointer
 from ubteacher.solver.build import build_lr_scheduler
 
-
 # Supervised-only Trainer
 class BaselineTrainer(DefaultTrainer):
     def __init__(self, cfg):
@@ -307,6 +306,11 @@ class UBTeacherTrainer(DefaultTrainer):
                     self.before_step()
                     self.run_step_full_semisup()
                     self.after_step()
+                    '''
+                    if (self.iter % self.cfg.TEST.EVAL_PERIOD) == 0:
+                        torch.cuda.empty_cache()
+                    '''
+
             except Exception:
                 logger.exception("Exception during training:")
                 raise

@@ -24,6 +24,7 @@ from detectron2.data.build import (
 from ubteacher.data.common import (
     AspectRatioGroupedSemiSupDatasetTwoCrop,
 )
+import pdb
 
 
 """
@@ -42,6 +43,7 @@ def divide_label_unlabel(
         coco_random_idx = json.load(COCO_sup_file)
 
     labeled_idx = np.array(coco_random_idx[str(SupPercent)][str(random_data_seed)])
+    #pdb.set_trace()
     assert labeled_idx.shape[0] == num_label, "Number of READ_DATA is mismatched."
 
     label_dicts = []
